@@ -20,5 +20,9 @@ asyncpg==0.29.0
 psycopg2
 # AWS S3 support (required when S3_ENABLED=true)
 boto3>=1.34.0
+<<<<<<< Updated upstream
 # Pin httpx below 0.28 — openai SDK breaks with httpx>=0.28 (removed 'proxies' arg)
 httpx>=0.24.0,<0.28.0
+=======
+httpx>=0.24.0,<0.28.0
+>>>>>>> Stashed changes
