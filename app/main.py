@@ -41,6 +41,8 @@ allowed_origins = settings.get_allowed_origins()
 if "*" not in allowed_origins:
     allowed_origins += [
         "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:5174",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
     ]
@@ -64,12 +66,6 @@ app.include_router(wix_chat.router)
 # ---------------------------------------------------------------------------
 # App config endpoint
 # ---------------------------------------------------------------------------
-
-@app.get("/")
-def check_health():
-    return {"message":"server running"}
-
-
 @app.get("/api/config")
 async def get_app_config():
     provider = settings.LLM_PROVIDER.lower()

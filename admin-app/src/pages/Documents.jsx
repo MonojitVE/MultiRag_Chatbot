@@ -4,6 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import StatusBadge from '../components/StatusBadge';
 import DeleteModal from '../components/DeleteModal';
+import {
+  Database, Search, RefreshCw, FileText, FileType, File,
+  FolderOpen, ExternalLink, Trash2, Inbox, Clock
+} from 'lucide-react';
 
 function fmtDate(iso) {
   return new Date(iso).toLocaleString(undefined, {
@@ -12,8 +16,10 @@ function fmtDate(iso) {
   });
 }
 
-function fileIcon(ext) {
-  return { pdf: '📄', docx: '📝', txt: '📃' }[ext] || '📁';
+function FileIcon({ ext }) {
+  const icons = { pdf: FileText, docx: FileType, txt: File };
+  const Icon = icons[ext] || FolderOpen;
+  return <Icon />;
 }
 
 export default function Documents() {
@@ -77,14 +83,14 @@ export default function Documents() {
   return (
     <div className="tab-pane">
       <div className="page-header">
-        <h2>📁 Knowledge Base</h2>
+        <h2><Database /> Knowledge Base</h2>
         <p>All ingested documents and their processing status</p>
       </div>
 
       {/* Toolbar */}
       <div className="docs-toolbar">
         <div className="search-box">
-          <span>🔍</span>
+          <Search />
           <input
             type="text"
             placeholder="Search by filename, department, author…"
@@ -99,7 +105,7 @@ export default function Documents() {
           <option value="failed">Failed</option>
         </select>
         <button className="btn-sm" onClick={load} disabled={loading}>
-          ↻ Refresh
+          <RefreshCw /> Refresh
         </button>
       </div>
 
@@ -121,13 +127,14 @@ export default function Documents() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8}><div className="empty-state">⏳ Loading…</div></td></tr>
+                <tr><td colSpan={8}><div className="empty-state"><Clock /> Loading…</div></td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={8}><div className="empty-state">📥 No documents found.</div></td></tr>
+                <tr><td colSpan={8}><div className="empty-state"><Inbox /> No documents found.</div></td></tr>
               ) : filtered.map(d => (
                 <tr key={d.id}>
                   <td className="filename">
-                    {fileIcon(d.file_type)} <span title={d.filename}>{d.filename}</span>
+                    <span className="inline-file-icon"><FileIcon ext={d.file_type} /></span>
+                    <span title={d.filename}>{d.filename}</span>
                   </td>
                   <td><span className="type-badge">{d.file_type.toUpperCase()}</span></td>
                   <td>{d.department || '—'}</td>
@@ -136,7 +143,7 @@ export default function Documents() {
                   <td className="date-cell">{fmtDate(d.upload_timestamp)}</td>
                   <td>
                     {d.s3_url
-                      ? <a href={d.s3_url} target="_blank" rel="noreferrer" className="s3-link">🔗 S3</a>
+                      ? <a href={d.s3_url} target="_blank" rel="noreferrer" className="s3-link"><ExternalLink /> S3</a>
                       : <span className="muted-text">Local</span>
                     }
                   </td>
@@ -146,7 +153,7 @@ export default function Documents() {
                       onClick={() => setDeleteTarget(d)}
                       title="Delete document"
                     >
-                      🗑️
+                      <Trash2 />
                     </button>
                   </td>
                 </tr>

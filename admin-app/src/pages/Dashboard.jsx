@@ -2,11 +2,16 @@ import { useEffect, useState, useCallback } from 'react';
 import { getDocuments } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import StatusBadge from '../components/StatusBadge';
+import {
+  LayoutDashboard, FolderOpen, CheckCircle2, Clock, XCircle,
+  FileText, FileType, File, RefreshCw, Inbox,
+  CloudUpload, BookOpen
+} from 'lucide-react';
 
-function StatCard({ icon, value, label, colorClass }) {
+function StatCard({ icon: Icon, value, label, colorClass }) {
   return (
     <div className={`stat-card stat-${colorClass}`}>
-      <div className={`stat-icon icon-${colorClass}`}>{icon}</div>
+      <div className={`stat-icon icon-${colorClass}`}><Icon /></div>
       <div className="stat-body">
         <span className="stat-value">{value ?? '—'}</span>
         <span className="stat-label">{label}</span>
@@ -22,8 +27,10 @@ function fmtDate(iso) {
   });
 }
 
-function fileIcon(ext) {
-  return { pdf: '📄', docx: '📝', txt: '📃' }[ext] || '📁';
+function FileIcon({ ext }) {
+  const icons = { pdf: FileText, docx: FileType, txt: File };
+  const Icon = icons[ext] || FolderOpen;
+  return <Icon />;
 }
 
 export default function Dashboard({ onTabChange }) {
@@ -53,24 +60,24 @@ export default function Dashboard({ onTabChange }) {
   return (
     <div className="tab-pane">
       <div className="page-header">
-        <h2>📊 Dashboard</h2>
+        <h2><LayoutDashboard /> Dashboard</h2>
         <p>Overview of your RAG knowledge base</p>
       </div>
 
       {/* Stats grid */}
       <div className="stats-grid">
-        <StatCard icon="📂" value={total}      label="Total Documents"  colorClass="indigo" />
-        <StatCard icon="✅" value={indexed}    label="Indexed & Ready"  colorClass="green"  />
-        <StatCard icon="⏳" value={processing} label="Processing"       colorClass="amber"  />
-        <StatCard icon="❌" value={failed}     label="Failed"           colorClass="red"    />
+        <StatCard icon={FolderOpen}   value={total}      label="Total Documents"  colorClass="indigo" />
+        <StatCard icon={CheckCircle2} value={indexed}    label="Indexed & Ready"  colorClass="green"  />
+        <StatCard icon={Clock}        value={processing} label="Processing"       colorClass="amber"  />
+        <StatCard icon={XCircle}      value={failed}     label="Failed"           colorClass="red"    />
       </div>
 
       {/* Recent docs */}
       <div className="panel">
         <div className="panel-header">
-          <h3>🕐 Recent Documents</h3>
+          <h3><Clock /> Recent Documents</h3>
           <button className="btn-sm" onClick={load} disabled={loading}>
-            {loading ? '…' : '↻ Refresh'}
+            {loading ? '…' : <><RefreshCw /> Refresh</>}
           </button>
         </div>
         <div className="panel-body">
@@ -78,13 +85,13 @@ export default function Dashboard({ onTabChange }) {
             <div className="loading-state">Loading…</div>
           ) : recent.length === 0 ? (
             <div className="empty-state">
-              <span>📥</span>
+              <Inbox />
               <p>No documents yet. Upload your first document.</p>
             </div>
           ) : (
             recent.map(d => (
               <div key={d.id} className="recent-doc-item">
-                <div className="doc-icon">{fileIcon(d.file_type)}</div>
+                <div className="doc-icon"><FileIcon ext={d.file_type} /></div>
                 <div className="doc-info">
                   <div className="doc-name">{d.filename}</div>
                   <div className="doc-meta">{fmtDate(d.upload_timestamp)} · {d.department || 'No dept'}</div>
@@ -99,13 +106,13 @@ export default function Dashboard({ onTabChange }) {
       {/* Quick actions */}
       <div className="quick-actions">
         <button className="quick-action-btn" onClick={() => onTabChange('upload')}>
-          ☁️ Upload Documents
+          <CloudUpload /> Upload Documents
         </button>
         <button className="quick-action-btn" onClick={() => onTabChange('documents')}>
-          📁 Manage Documents
+          <FolderOpen /> Manage Documents
         </button>
         <a href="/api/docs" target="_blank" rel="noreferrer" className="quick-action-btn">
-          📖 API Docs
+          <BookOpen /> API Docs
         </a>
       </div>
     </div>

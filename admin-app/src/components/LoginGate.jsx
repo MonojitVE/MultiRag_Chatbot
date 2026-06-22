@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { getConfig } from '../services/api';
+import { ShieldCheck, Eye, EyeOff, AlertTriangle, ArrowRight } from 'lucide-react';
 
 export default function LoginGate() {
   const { login } = useAuth();
@@ -31,7 +32,9 @@ export default function LoginGate() {
     <div className="login-overlay">
       <div className="login-card">
         <div className="login-logo">
-          <div className="login-logo-icon">🛡️</div>
+          <div className="login-logo-icon">
+            <ShieldCheck />
+          </div>
           <h1>RAG Admin Panel</h1>
           <p>Enter your admin API key to continue</p>
         </div>
@@ -54,19 +57,20 @@ export default function LoginGate() {
                 onClick={() => setShowKey(v => !v)}
                 aria-label="Toggle visibility"
               >
-                {showKey ? '🙈' : '👁️'}
+                {showKey ? <EyeOff /> : <Eye />}
               </button>
             </div>
           </div>
 
           {error && (
             <div className="login-error">
-              ⚠️ <span>{error}</span>
+              <AlertTriangle /> <span>{error}</span>
             </div>
           )}
 
           <button type="submit" className="btn-login" disabled={loading || !key.trim()}>
-            {loading ? 'Connecting…' : 'Access Admin Panel'} →
+            {loading ? 'Connecting…' : 'Access Admin Panel'}
+            <ArrowRight />
           </button>
         </form>
 

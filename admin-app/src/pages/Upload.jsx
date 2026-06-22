@@ -2,12 +2,22 @@ import { useState, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { uploadDocument } from '../services/api';
+import {
+  CloudUpload, FolderOpen, FileText, FileType, File,
+  X, Tag, Building2, User, Layers, Upload, ArrowRight
+} from 'lucide-react';
 
 const ALLOWED_EXT = ['pdf', 'docx', 'txt'];
 const MAX_MB = 25;
 
 function fileExt(name) { return name.split('.').pop().toLowerCase(); }
-function fileIcon(ext) { return { pdf: '📄', docx: '📝', txt: '📃' }[ext] || '📁'; }
+
+function FileIcon({ ext }) {
+  const icons = { pdf: FileText, docx: FileType, txt: File };
+  const Icon = icons[ext] || FolderOpen;
+  return <Icon />;
+}
+
 function fmtSize(b) {
   if (b < 1024) return `${b} B`;
   if (b < 1048576) return `${(b/1024).toFixed(1)} KB`;
@@ -17,7 +27,7 @@ function fmtSize(b) {
 function FileItem({ file, index, onRemove, progress, done, failed }) {
   return (
     <div className="file-item">
-      <span className="file-item-icon">{fileIcon(fileExt(file.name))}</span>
+      <span className="file-item-icon"><FileIcon ext={fileExt(file.name)} /></span>
       <div className="file-item-info">
         <div className="file-item-name" title={file.name}>{file.name}</div>
         <div className="file-item-size">{fmtSize(file.size)}</div>
@@ -31,13 +41,13 @@ function FileItem({ file, index, onRemove, progress, done, failed }) {
         )}
       </div>
       {onRemove && (
-        <button className="file-item-remove" onClick={() => onRemove(index)}>✕</button>
+        <button className="file-item-remove" onClick={() => onRemove(index)}><X /></button>
       )}
     </div>
   );
 }
 
-export default function Upload({ onTabChange }) {
+export default function UploadPage({ onTabChange }) {
   const { adminKey } = useAuth();
   const { addToast } = useToast();
 
@@ -126,8 +136,8 @@ export default function Upload({ onTabChange }) {
   return (
     <div className="tab-pane">
       <div className="page-header">
-        <h2>☁️ Upload Documents</h2>
-        <p>Drag &amp; drop multiple files or browse to add to the knowledge base</p>
+        <h2><CloudUpload /> Upload Documents</h2>
+        <p>Drag & drop multiple files or browse to add to the knowledge base</p>
       </div>
 
       <div className="upload-layout">
@@ -140,7 +150,7 @@ export default function Upload({ onTabChange }) {
             onDrop={handleDrop}
           >
             <div className="dropzone-inner">
-              <div className="dropzone-icon">☁️</div>
+              <div className="dropzone-icon"><CloudUpload /></div>
               <p className="dropzone-title">Drop files here</p>
               <p className="dropzone-sub">PDF, DOCX, TXT · Max {MAX_MB} MB each</p>
               <button
@@ -148,7 +158,7 @@ export default function Upload({ onTabChange }) {
                 className="btn-browse"
                 onClick={() => inputRef.current.click()}
               >
-                📂 Browse Files
+                <FolderOpen /> Browse Files
               </button>
               <input
                 ref={inputRef}
@@ -191,20 +201,23 @@ export default function Upload({ onTabChange }) {
 
         {/* Metadata + submit */}
         <div className="upload-meta-panel">
-          <h3 className="meta-panel-title">🏷️ Metadata <span className="meta-optional">(Optional)</span></h3>
+          <h3 className="meta-panel-title"><Tag /> Metadata <span className="meta-optional">(Optional)</span></h3>
           <p className="meta-panel-sub">Applied to all files in this batch</p>
 
           <div className="meta-fields">
             {[
-              { id: 'dept',     label: '🏢 Department', val: dept,     set: setDept,     ph: 'e.g. HR, Engineering' },
-              { id: 'author',   label: '👤 Author',     val: author,   set: setAuthor,   ph: 'e.g. John Doe'        },
-              { id: 'category', label: '🗂️ Category',  val: category, set: setCategory, ph: 'e.g. Policy, Report'  },
-            ].map(f => (
-              <div key={f.id} className="field-group">
-                <label htmlFor={f.id}>{f.label}</label>
-                <input id={f.id} type="text" value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph} />
-              </div>
-            ))}
+              { id: 'dept',     label: 'Department', icon: Building2, val: dept,     set: setDept,     ph: 'e.g. HR, Engineering' },
+              { id: 'author',   label: 'Author',     icon: User,      val: author,   set: setAuthor,   ph: 'e.g. John Doe'        },
+              { id: 'category', label: 'Category',   icon: Layers,    val: category, set: setCategory, ph: 'e.g. Policy, Report'  },
+            ].map(f => {
+              const FieldIcon = f.icon;
+              return (
+                <div key={f.id} className="field-group">
+                  <label htmlFor={f.id}><FieldIcon /> {f.label}</label>
+                  <input id={f.id} type="text" value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph} />
+                </div>
+              );
+            })}
           </div>
 
           <button
@@ -215,7 +228,7 @@ export default function Upload({ onTabChange }) {
             {uploading ? (
               <><span className="btn-spinner" /> Uploading…</>
             ) : (
-              '🚀 Ingest & Index'
+              <><Upload /> Ingest & Index</>
             )}
           </button>
 
@@ -232,7 +245,7 @@ export default function Upload({ onTabChange }) {
 
           {results && results.ok > 0 && (
             <button className="btn-sm" style={{ marginTop: 12 }} onClick={() => onTabChange('documents')}>
-              📁 View Documents →
+              <FolderOpen /> View Documents <ArrowRight />
             </button>
           )}
         </div>

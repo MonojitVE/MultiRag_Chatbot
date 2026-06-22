@@ -8,6 +8,7 @@ import Documents from './pages/Documents';
 import Upload from './pages/Upload';
 import Settings from './pages/Settings';
 import { getConfig, getDocuments } from './services/api';
+import { Zap, Cloud } from 'lucide-react';
 
 const TAB_LABELS = {
   dashboard: 'Dashboard',
@@ -70,8 +71,8 @@ function AdminShell() {
             </nav>
           </div>
           <div className="topbar-right">
-            <div className="topbar-badge">⚡ {llmLabel}</div>
-            <div className="topbar-badge s3-badge">☁️ {s3Label}</div>
+            <div className="topbar-badge"><Zap /> {llmLabel}</div>
+            <div className="topbar-badge s3-badge"><Cloud /> {s3Label}</div>
           </div>
         </header>
 

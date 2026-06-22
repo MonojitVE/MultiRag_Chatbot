@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { getConfig } from '../services/api';
+import {
+  Settings as SettingsIcon, Server, Puzzle, Key,
+  Copy, Check, Eye, EyeOff, LogOut, ListChecks
+} from 'lucide-react';
 
 export default function Settings() {
   const { adminKey, logout } = useAuth();
@@ -59,14 +63,14 @@ export async function post_ragChat(request) {
   return (
     <div className="tab-pane">
       <div className="page-header">
-        <h2>⚙️ System Settings</h2>
+        <h2><SettingsIcon /> System Settings</h2>
         <p>Backend configuration and Wix integration guide</p>
       </div>
 
       <div className="settings-grid">
         {/* Backend config */}
         <div className="panel settings-panel">
-          <div className="panel-header"><h3>🖥️ Backend Configuration</h3></div>
+          <div className="panel-header"><h3><Server /> Backend Configuration</h3></div>
           <div className="panel-body">
             {config ? [
               ['LLM Provider', config.llm_provider],
@@ -85,7 +89,7 @@ export async function post_ragChat(request) {
 
         {/* Wix integration */}
         <div className="panel settings-panel">
-          <div className="panel-header"><h3>🧩 Wix Integration</h3></div>
+          <div className="panel-header"><h3><Puzzle /> Wix Integration</h3></div>
           <div className="panel-body">
             <p className="settings-description">
               Paste this into your Wix site&rsquo;s Velo editor under{' '}
@@ -93,12 +97,12 @@ export async function post_ragChat(request) {
             </p>
             <div className="code-block">
               <button className={`copy-btn ${copied ? 'copied' : ''}`} onClick={copyCode}>
-                {copied ? '✓' : '📋'}
+                {copied ? <Check /> : <Copy />}
               </button>
               <pre><code>{wixCode}</code></pre>
             </div>
             <div className="wix-steps">
-              <h4>📋 Setup Steps</h4>
+              <h4><ListChecks /> Setup Steps</h4>
               <ol>
                 <li>Open Wix Editor → <strong>Dev Mode</strong> → Enable Velo</li>
                 <li>Go to <strong>Backend → http-functions.js</strong></li>
@@ -112,7 +116,7 @@ export async function post_ragChat(request) {
 
         {/* Admin key */}
         <div className="panel settings-panel">
-          <div className="panel-header"><h3>🔑 Admin API Key</h3></div>
+          <div className="panel-header"><h3><Key /> Admin API Key</h3></div>
           <div className="panel-body">
             <p className="settings-description">
               Set via <code>ADMIN_API_KEY</code> in your server <code>.env</code>.
@@ -121,11 +125,11 @@ export async function post_ragChat(request) {
             <div className="key-display">
               <span className="key-dots">{showKey ? adminKey : '●●●●●●●●●●●●●●●●'}</span>
               <button className="btn-sm" onClick={() => setShowKey(v => !v)}>
-                {showKey ? '🙈 Hide' : '👁️ Show'}
+                {showKey ? <><EyeOff /> Hide</> : <><Eye /> Show</>}
               </button>
             </div>
             <button className="btn-sm danger" onClick={logout} style={{ marginTop: 12 }}>
-              ↩ Sign Out
+              <LogOut /> Sign Out
             </button>
           </div>
         </div>

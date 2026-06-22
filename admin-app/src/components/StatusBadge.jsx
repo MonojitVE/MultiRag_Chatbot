@@ -1,13 +1,17 @@
+import { CheckCircle2, Loader2, XCircle, HelpCircle } from 'lucide-react';
+
+const STATUS_MAP = {
+  completed:  { label: 'Indexed',    cls: 'badge-green',  Icon: CheckCircle2 },
+  processing: { label: 'Processing', cls: 'badge-amber',  Icon: Loader2 },
+  failed:     { label: 'Failed',     cls: 'badge-red',    Icon: XCircle },
+};
+
 export default function StatusBadge({ status }) {
-  const map = {
-    completed:  { label: 'Indexed',    cls: 'badge-green',  icon: '✓' },
-    processing: { label: 'Processing', cls: 'badge-amber',  icon: '⟳' },
-    failed:     { label: 'Failed',     cls: 'badge-red',    icon: '✕' },
-  };
-  const cfg = map[status] || { label: status, cls: 'badge-gray', icon: '?' };
+  const cfg = STATUS_MAP[status] || { label: status, cls: 'badge-gray', Icon: HelpCircle };
+  const { Icon } = cfg;
   return (
     <span className={`badge ${cfg.cls} ${status === 'processing' ? 'badge-spin' : ''}`}>
-      {cfg.icon} {cfg.label}
+      <Icon /> {cfg.label}
     </span>
   );
 }

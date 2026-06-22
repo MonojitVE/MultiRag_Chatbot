@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback } from 'react';
+import { CheckCircle2, XCircle, Info, AlertTriangle } from 'lucide-react';
 
 const ToastContext = createContext(null);
 
@@ -26,21 +27,24 @@ export function ToastProvider({ children }) {
 export const useToast = () => useContext(ToastContext);
 
 const ICONS = {
-  success: '✓',
-  error: '✕',
-  info: 'ℹ',
-  warning: '⚠',
+  success: CheckCircle2,
+  error: XCircle,
+  info: Info,
+  warning: AlertTriangle,
 };
 
 function ToastStack({ toasts }) {
   return (
     <div className="toast-stack">
-      {toasts.map(t => (
-        <div key={t.id} className={`toast toast-${t.type}`}>
-          <span className="toast-icon">{ICONS[t.type]}</span>
-          <span>{t.message}</span>
-        </div>
-      ))}
+      {toasts.map(t => {
+        const Icon = ICONS[t.type] || Info;
+        return (
+          <div key={t.id} className={`toast toast-${t.type}`}>
+            <span className="toast-icon"><Icon /></span>
+            <span>{t.message}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
