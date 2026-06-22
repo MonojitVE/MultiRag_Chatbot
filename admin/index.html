@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Admin Panel — Knowledge Base Manager</title>
+    <meta name="description" content="Admin panel for managing documents in the Multi-Document RAG knowledge base.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!--  LOGIN GATE MODAL                                                       -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="login-overlay" id="loginOverlay">
+    <div class="login-card">
+        <div class="login-logo">
+            <div class="login-logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <h1>RAG Admin Panel</h1>
+            <p>Enter your admin API key to continue</p>
+        </div>
+        <form id="loginForm" class="login-form">
+            <div class="login-input-group">
+                <label for="adminKeyInput"><i class="fa-solid fa-key"></i> Admin API Key</label>
+                <div class="password-wrapper">
+                    <input type="password" id="adminKeyInput" placeholder="Enter your admin API key..." autocomplete="current-password">
+                    <button type="button" id="toggleKeyVisibility" class="toggle-pw-btn" title="Toggle visibility">
+                        <i class="fa-solid fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="login-error" id="loginError" style="display:none;">
+                <i class="fa-solid fa-circle-exclamation"></i> <span id="loginErrorMsg">Invalid API key.</span>
+            </div>
+            <button type="submit" class="btn-login" id="loginBtn">
+                <span class="btn-login-text">Access Admin Panel</span>
+                <i class="fa-solid fa-arrow-right-to-bracket"></i>
+            </button>
+        </form>
+        <p class="login-hint">Key is set via <code>ADMIN_API_KEY</code> in your server <code>.env</code></p>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!--  MAIN APP SHELL                                                         -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="app-shell" id="appShell" style="display:none;">
+
+    <!-- ── SIDEBAR ─────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon"><i class="fa-solid fa-brain-circuit"></i></div>
+            <div class="brand-text">
+                <span class="brand-name">AETHER</span>
+                <span class="brand-sub">Admin Panel</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-tab="dashboard" id="navDashboard">
+                <i class="fa-solid fa-gauge-high"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="documents" id="navDocuments">
+                <i class="fa-solid fa-folder-open"></i>
+                <span>Documents</span>
+                <span class="nav-badge" id="sidebarDocCount">0</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="upload" id="navUpload">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>Upload</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="settings" id="navSettings">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="server-status" id="serverStatus">
+                <span class="status-dot online" id="statusDot"></span>
+                <span class="status-label" id="statusLabel">Connected</span>
+            </div>
+            <button class="btn-logout" id="logoutBtn" title="Sign out">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ── MAIN CONTENT ─────────────────────────────────────────────────── -->
+    <main class="main-area">
+
+        <!-- Top Header Bar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="sidebar-toggle-btn" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+                <nav class="breadcrumb" id="breadcrumb">
+                    <span>Admin</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                    <span id="breadcrumbPage">Dashboard</span>
+                </nav>
+            </div>
+            <div class="topbar-right">
+                <div class="topbar-badge" id="topbarLLM">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span id="llmLabel">Loading…</span>
+                </div>
+                <div class="topbar-badge s3-badge" id="topbarS3">
+                    <i class="fa-brands fa-aws"></i>
+                    <span id="s3Label">S3: Checking…</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ──────────────────────────────────────────────────────────── -->
+        <!--  TAB: DASHBOARD                                               -->
+        <!-- ──────────────────────────────────────────────────────────── -->
+        <section class="tab-pane active" id="tabDashboard">
+            <div class="page-header">
+                <h2><i class="fa-solid fa-gauge-high"></i> Dashboard</h2>
+                <p>Overview of your RAG knowledge base</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card" id="statTotal">
+                    <div class="stat-icon indigo"><i class="fa-solid fa-file-circle-check"></i></div>
+                    <div class="stat-body">
+                        <span class="stat-value" id="statTotalVal">—</span>
+                        <span class="stat-label">Total Documents</span>
+                    </div>
+                    <div class="stat-glow indigo"></div>
+                </div>
+                <div class="stat-card" id="statIndexed">
+                    <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+                    <div class="stat-body">
+                        <span class="stat-value" id="statIndexedVal">—</span>
+                        <span class="stat-label">Indexed &amp; Ready</span>
+                    </div>
+                    <div class="stat-glow green"></div>
+                </div>
+                <div class="stat-card" id="statProcessing">
+                    <div class="stat-icon amber"><i class="fa-solid fa-spinner"></i></div>
+                    <div class="stat-body">
+                        <span class="stat-value" id="statProcessingVal">—</span>
+                        <span class="stat-label">Processing</span>
+                    </div>
+                    <div class="stat-glow amber"></div>
+                </div>
+                <div class="stat-card" id="statFailed">
+                    <div class="stat-icon red"><i class="fa-solid fa-circle-xmark"></i></div>
+                    <div class="stat-body">
+                        <span class="stat-value" id="statFailedVal">—</span>
+                        <span class="stat-label">Failed</span>
+                    </div>
+                    <div class="stat-glow red"></div>
+                </div>
+            </div>
+
+            <!-- Recent Documents -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Documents</h3>
+                    <button class="btn-sm" id="dashRefreshBtn"><i class="fa-solid fa-rotate"></i> Refresh</button>
+                </div>
+                <div class="panel-body" id="recentDocsList">
+                    <div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No documents yet.</p></div>
+                </div>
+            </div>
+
+            <!-- Quick actions -->
+            <div class="quick-actions">
+                <button class="quick-action-btn" id="qaUpload" data-tab="upload">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Upload Documents</span>
+                </button>
+                <button class="quick-action-btn" id="qaDocuments" data-tab="documents">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <span>Manage Documents</span>
+                </button>
+                <a href="/api/docs" target="_blank" class="quick-action-btn">
+                    <i class="fa-solid fa-code"></i>
+                    <span>API Docs</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- ──────────────────────────────────────────────────────────── -->
+        <!--  TAB: DOCUMENTS                                               -->
+        <!-- ──────────────────────────────────────────────────────────── -->
+        <section class="tab-pane" id="tabDocuments">
+            <div class="page-header">
+                <h2><i class="fa-solid fa-folder-open"></i> Knowledge Base</h2>
+                <p>All ingested documents and their processing status</p>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="docs-toolbar">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="docSearch" placeholder="Search by filename, department, author…">
+                </div>
+                <div class="filter-group">
+                    <select id="filterStatus">
+                        <option value="">All Statuses</option>
+                        <option value="completed">Indexed</option>
+                        <option value="processing">Processing</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+                <button class="btn-sm" id="docsRefreshBtn"><i class="fa-solid fa-rotate"></i> Refresh</button>
+            </div>
+
+            <!-- Documents Table -->
+            <div class="panel">
+                <div class="panel-body no-pad">
+                    <table class="docs-table" id="docsTable">
+                        <thead>
+                            <tr>
+                                <th><i class="fa-solid fa-file"></i> File</th>
+                                <th><i class="fa-solid fa-tag"></i> Type</th>
+                                <th><i class="fa-solid fa-building"></i> Department</th>
+                                <th><i class="fa-solid fa-user"></i> Author</th>
+                                <th><i class="fa-solid fa-circle-half-stroke"></i> Status</th>
+                                <th><i class="fa-solid fa-calendar"></i> Uploaded</th>
+                                <th><i class="fa-brands fa-aws"></i> S3</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="docsTableBody">
+                            <tr class="table-empty-row">
+                                <td colspan="8">
+                                    <div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No documents found.</p></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ──────────────────────────────────────────────────────────── -->
+        <!--  TAB: UPLOAD                                                  -->
+        <!-- ──────────────────────────────────────────────────────────── -->
+        <section class="tab-pane" id="tabUpload">
+            <div class="page-header">
+                <h2><i class="fa-solid fa-cloud-arrow-up"></i> Upload Documents</h2>
+                <p>Drag &amp; drop multiple files or browse to add to the knowledge base</p>
+            </div>
+
+            <div class="upload-layout">
+                <!-- Drop Zone -->
+                <div class="upload-panel">
+                    <div class="dropzone" id="dropzone">
+                        <div class="dropzone-inner" id="dropzoneInner">
+                            <div class="dropzone-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                            <p class="dropzone-title">Drop files here</p>
+                            <p class="dropzone-sub">PDF, DOCX, TXT &bull; Max 25 MB each</p>
+                            <button type="button" class="btn-browse" id="browseBtn">
+                                <i class="fa-solid fa-folder-open"></i> Browse Files
+                            </button>
+                            <input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt" style="display:none;">
+                        </div>
+                    </div>
+
+                    <!-- Selected Files Queue -->
+                    <div class="file-queue" id="fileQueue" style="display:none;">
+                        <div class="file-queue-header">
+                            <span id="fileQueueTitle">0 files selected</span>
+                            <button type="button" class="btn-text-sm" id="clearQueueBtn">Clear all</button>
+                        </div>
+                        <div class="file-list" id="fileList"></div>
+                    </div>
+                </div>
+
+                <!-- Metadata + Submit -->
+                <div class="upload-meta-panel">
+                    <h3 class="meta-panel-title"><i class="fa-solid fa-tag"></i> Metadata (Optional)</h3>
+                    <p class="meta-panel-sub">Applied to all files in this batch</p>
+
+                    <div class="meta-fields">
+                        <div class="field-group">
+                            <label for="metaDept"><i class="fa-solid fa-building"></i> Department</label>
+                            <input type="text" id="metaDept" placeholder="e.g. HR, Engineering, Legal">
+                        </div>
+                        <div class="field-group">
+                            <label for="metaAuthor"><i class="fa-solid fa-user"></i> Author</label>
+                            <input type="text" id="metaAuthor" placeholder="e.g. John Doe">
+                        </div>
+                        <div class="field-group">
+                            <label for="metaCategory"><i class="fa-solid fa-layer-group"></i> Category</label>
+                            <input type="text" id="metaCategory" placeholder="e.g. Policy, Technical, Report">
+                        </div>
+                    </div>
+
+                    <button class="btn-upload" id="uploadBtn" disabled>
+                        <span class="btn-upload-text"><i class="fa-solid fa-rocket"></i> Ingest &amp; Index</span>
+                        <div class="btn-spinner" id="uploadSpinner" style="display:none;"></div>
+                    </button>
+
+                    <!-- Per-file progress -->
+                    <div class="progress-list" id="progressList" style="display:none;"></div>
+
+                    <!-- Upload summary -->
+                    <div class="upload-summary" id="uploadSummary" style="display:none;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ──────────────────────────────────────────────────────────── -->
+        <!--  TAB: SETTINGS                                                -->
+        <!-- ──────────────────────────────────────────────────────────── -->
+        <section class="tab-pane" id="tabSettings">
+            <div class="page-header">
+                <h2><i class="fa-solid fa-sliders"></i> System Settings</h2>
+                <p>Current backend configuration and Wix integration guide</p>
+            </div>
+
+            <div class="settings-grid">
+                <!-- System Config Card -->
+                <div class="panel settings-panel">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-server"></i> Backend Configuration</h3>
+                    </div>
+                    <div class="panel-body" id="configPanel">
+                        <div class="config-row">
+                            <span class="config-key">LLM Provider</span>
+                            <span class="config-val" id="cfgProvider">—</span>
+                        </div>
+                        <div class="config-row">
+                            <span class="config-key">LLM Model</span>
+                            <span class="config-val" id="cfgModel">—</span>
+                        </div>
+                        <div class="config-row">
+                            <span class="config-key">Database</span>
+                            <span class="config-val" id="cfgDb">—</span>
+                        </div>
+                        <div class="config-row">
+                            <span class="config-key">S3 Storage</span>
+                            <span class="config-val" id="cfgS3">—</span>
+                        </div>
+                        <div class="config-row">
+                            <span class="config-key">S3 Bucket</span>
+                            <span class="config-val" id="cfgBucket">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wix Integration Guide -->
+                <div class="panel settings-panel">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-puzzle-piece"></i> Wix Integration</h3>
+                    </div>
+                    <div class="panel-body">
+                        <p class="settings-description">
+                            To connect your Wix chatbot to this RAG backend, paste the following
+                            code into your Wix site's <strong>Velo Editor</strong> under
+                            <code>Backend → http-functions.js</code>:
+                        </p>
+                        <div class="code-block" id="wixCodeBlock">
+                            <button class="copy-btn" id="copyWixCode" title="Copy code"><i class="fa-solid fa-copy"></i></button>
+                            <pre><code id="wixCode">// Loading…</code></pre>
+                        </div>
+                        <div class="wix-steps">
+                            <h4><i class="fa-solid fa-list-ol"></i> Setup Steps</h4>
+                            <ol>
+                                <li>Open your Wix site editor and enable <strong>Velo by Wix</strong>.</li>
+                                <li>In the left panel, go to <strong>Public &amp; Backend → Backend</strong>.</li>
+                                <li>Create or open <strong>http-functions.js</strong>.</li>
+                                <li>Paste the code shown above.</li>
+                                <li>Replace <code>YOUR_BACKEND_URL</code> with your server URL.</li>
+                                <li>In your Wix chat widget, set the webhook to call <code>post_ragChat</code>.</li>
+                                <li>Publish your Wix site.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Key Management -->
+                <div class="panel settings-panel">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-key"></i> Admin API Key</h3>
+                    </div>
+                    <div class="panel-body">
+                        <p class="settings-description">
+                            Your admin key is stored in the server's <code>.env</code> file as
+                            <code>ADMIN_API_KEY</code>. To rotate it, update the value and restart the server.
+                        </p>
+                        <div class="key-display">
+                            <span class="key-dots" id="keyDots">●●●●●●●●●●●●●●●●</span>
+                            <button class="btn-sm" id="showKeyBtn"><i class="fa-solid fa-eye"></i> Show Current</button>
+                        </div>
+                        <button class="btn-sm danger" id="logoutBtnSettings">
+                            <i class="fa-solid fa-right-from-bracket"></i> Sign Out of Admin Panel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!--  DELETE CONFIRM MODAL                                                   -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="deleteModal" style="display:none;">
+    <div class="modal-card">
+        <div class="modal-icon danger"><i class="fa-solid fa-trash-can"></i></div>
+        <h3>Delete Document?</h3>
+        <p id="deleteModalMsg">This will permanently remove the document, all its chunks, vectors, and the S3 object.</p>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" id="deleteCancelBtn">Cancel</button>
+            <button class="btn-modal-danger" id="deleteConfirmBtn"><i class="fa-solid fa-trash-can"></i> Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!--  TOAST NOTIFICATIONS                                                    -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="toast-stack" id="toastStack"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
