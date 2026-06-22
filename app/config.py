@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     RERANKER_MODEL_NAME: str = Field(default="cross-encoder/ms-marco-MiniLM-L-6-v2", env="RERANKER_MODEL_NAME")
     
     # Storage
-    DATABASE_URL: str = Field(default="postgresql+asyncpg://postgres:Pass123@localhost:5432/multirag", env="DATABASE_URL")
+    DATABASE_URL: str = Field(default="postgresql+asyncpg://postgres:Pass#123@localhost:5432/multirag", env="DATABASE_URL")
     FAISS_INDEX_DIR: str = Field(default="./data/faiss_index", env="FAISS_INDEX_DIR")
     UPLOADS_DIR: str = Field(default="./data/uploads", env="UPLOADS_DIR")
     
