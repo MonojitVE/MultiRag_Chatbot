@@ -20,7 +20,7 @@ export default function Settings() {
       .catch(e => addToast('Failed to load config: ' + e.message, 'error'));
   }, [addToast]);
 
-  const serverUrl = `${window.location.protocol}//${window.location.host}`;
+  const serverUrl = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.host}`;
   const wixCode = `// ═══════════════════════════════════════════════════════
 // Wix Velo — http-functions.js
 // Paste into: Backend → http-functions.js in Wix Editor

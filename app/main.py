@@ -66,7 +66,12 @@ app.include_router(wix_chat.router)
 # ---------------------------------------------------------------------------
 # App config endpoint
 # ---------------------------------------------------------------------------
+@app.get("/")
+async def health_check():
+    return {"status": "healthy"}
+
 @app.get("/api/config")
+
 async def get_app_config():
     provider = settings.LLM_PROVIDER.lower()
     if provider == "google":

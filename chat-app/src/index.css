@@ -406,6 +406,30 @@ body {
   margin-bottom: 3px;
 }
 
+/* ── Markdown Tables ───────────────────────────────────────────────── */
+.message-bubble table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 13px;
+}
+
+.message-bubble th, .message-bubble td {
+  border: 1px solid var(--hairline-strong);
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.message-bubble th {
+  background: var(--surface-elevated);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.message-bubble tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
 .message-time {
   font-size: 11px;
   color: var(--stone);

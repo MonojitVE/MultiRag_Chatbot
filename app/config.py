@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     
     OPENAI_MODEL: str = Field(default="gpt-4o-mini", env="OPENAI_MODEL")
     GOOGLE_MODEL: str = Field(default="gemini-1.5-flash", env="GOOGLE_MODEL")
-    GROQ_MODEL: str = Field(default="llama-3.3-70b-versatile", env="GROQ_MODEL")
+    GROQ_MODEL: str = Field(default="openai/gpt-oss-20b", env="GROQ_MODEL")
     
     # Embedding / Reranking
     EMBEDDING_MODEL_NAME: str = Field(default="sentence-transformers/all-MiniLM-L6-v2", env="EMBEDDING_MODEL_NAME")

@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { sendQuery } from './services/api';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { sendQuery, getConfig } from './services/api';
 import './index.css';
-
 /* ── SVG Icons (no external deps) ────────────────────────────────── */
 const IconSend = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -51,25 +52,6 @@ const IconBrain = ({ size = 26 }) => (
 /* ── Helpers ─────────────────────────────────────────────────────── */
 function formatTime(date) {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
-
-function formatMarkdown(text) {
-  if (!text) return '';
-  let html = text
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/`(.*?)`/g, '<code>$1</code>')
-    .replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>')
-    .replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
-
-  html = html.replace(/((?:<li>.*?<\/li>\n?)+)/g, '<ul>$1</ul>');
-  html = html.split(/\n\n+/).map(p => {
-    p = p.trim();
-    if (!p || p.startsWith('<ul>') || p.startsWith('<li>')) return p;
-    return `<p>${p}</p>`;
-  }).join('');
-  html = html.replace(/\n/g, '<br/>');
-  return html;
 }
 
 const SUGGESTIONS = [
@@ -126,10 +108,11 @@ function MessageBubble({ msg }) {
         {isUser ? <IconUser /> : <IconBot />}
       </div>
       <div className="message-content">
-        <div
-          className={`message-bubble ${isError ? 'error-bubble' : ''}`}
-          dangerouslySetInnerHTML={{ __html: formatMarkdown(msg.text) }}
-        />
+        <div className={`message-bubble ${isError ? 'error-bubble' : ''}`}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {msg.text.replace(/<br\s*\/?>/gi, '\n')}
+          </ReactMarkdown>
+        </div>
         {!isUser && msg.sources && <SourcesPanel sources={msg.sources} />}
         {!isUser && msg.executionTime && (
           <div className="exec-time">
@@ -187,8 +170,8 @@ export default function App() {
   }, [input]);
 
   useEffect(() => {
-    fetch('/api/config')
-      .then(r => { if (r.ok) setOnline(true); else setOnline(false); })
+    getConfig()
+      .then(() => setOnline(true))
       .catch(() => setOnline(false));
   }, []);
 
