@@ -43,6 +43,11 @@ if db_url.startswith("postgres://"):
 elif db_url.startswith("postgresql://"):
     db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
+# Fix Neon DB query parameters for asyncpg compatibility
+db_url = db_url.replace("sslmode=require", "ssl=require")
+db_url = db_url.replace("&channel_binding=require", "")
+db_url = db_url.replace("?channel_binding=require", "")
+
 print("DATABASE_URL =", db_url)
 async_engine = create_async_engine(db_url, echo=False)
 AsyncSessionLocal = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)
