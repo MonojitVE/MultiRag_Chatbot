@@ -36,8 +36,15 @@ class Chunk(Base):
     document = relationship("Document", back_populates="chunks")
 
 # Async DB Setup
-print("DATABASE_URL =", settings.DATABASE_URL)
-async_engine = create_async_engine(settings.DATABASE_URL, echo=False)
+# Ensure we use the asyncpg driver if a standard postgres URL is provided
+db_url = settings.DATABASE_URL
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
+elif db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+print("DATABASE_URL =", db_url)
+async_engine = create_async_engine(db_url, echo=False)
 AsyncSessionLocal = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)
 
 async def init_db():
