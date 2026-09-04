@@ -2,14 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // Chat frontend build config
-// Built output goes to ../frontend/ so FastAPI serves it at /
+// Built output goes to default dist/ for Vercel
 export default defineConfig({
   plugins: [react()],
-  base: '/',
-  build: {
-    outDir: '../frontend',
-    emptyOutDir: true,
-  },
   server: {
     port: 5173,
     proxy: {
